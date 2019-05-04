@@ -44,4 +44,12 @@ describe('UserDetailsComponent', () => {
     // use of original router dependency will decrease performance. so we use sub (fake service)
   });
 
+  it('should redirect to /user when click on save',()=>{
+    const router = TestBed.get(Router);
+    const spy = spyOn(router,'navigate'); // creating fake implementation of navigation method.
+    // we cannot use stub method here for method implementation. we have to use spyOn.
+    component.save();
+    expect(spy).toHaveBeenCalledWith(['users']);
+  });
+
 });
