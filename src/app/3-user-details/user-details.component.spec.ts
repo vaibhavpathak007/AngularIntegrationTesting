@@ -5,7 +5,7 @@ import { DebugElement } from '@angular/core';
 
 import { UserDetailsComponent } from './user-details.component';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 
 class RouterStub{
   navigate(params){ // implemented only one method which is used in component.
@@ -14,7 +14,16 @@ class RouterStub{
 }
 
 class ActivatedRouteStub{
-  params: Observable<any> = of(); // to avoid error of subscribe of undefined in onInit()
+
+  parameter = new Subject();
+
+  push(param){
+    this.parameter.next(param); // added to trick the addition of parameter in observable.
+  }
+
+  get params(){
+    return this.parameter.asObservable();  // same as params property
+  }
 }
 
 describe('UserDetailsComponent', () => {
@@ -47,9 +56,17 @@ describe('UserDetailsComponent', () => {
   it('should redirect to /user when click on save',()=>{
     const router = TestBed.get(Router);
     const spy = spyOn(router,'navigate'); // creating fake implementation of navigation method.
-    // we cannot use stub method here for method implementation. we have to use spyOn.
+    // this spyOn will use router instance declared in provide from provider array.
     component.save();
     expect(spy).toHaveBeenCalledWith(['users']);
+  });
+
+  it('should redirect to /not-found on id is zero',()=>{
+    const router = TestBed.get(Router);
+    const spy = spyOn(router,'navigate');           // we need it as on init has navigate inside if statement.
+    const activatedRoute: ActivatedRouteStub = TestBed.get(ActivatedRoute); // we have defined type here as we have to call push method.
+    activatedRoute.push({"id": 0});
+    expect(spy).toHaveBeenCalledWith(['not-found']);
   });
 
 });
